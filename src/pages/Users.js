@@ -1,7 +1,16 @@
 import React, { useState, useEffect } from "react";
-export function Users(
-    
-) {
+import { NewUserModal } from "../components/NewUserModal";
+import { Modal } from "../components/Modal";
+import {
+  collection,
+  addDoc,
+  getDocs,
+  doc,
+  deleteDoc,
+} from "firebase/firestore";
+import { fireStore } from "../lib/firebase";
+
+export function Users() {
   const [users, setUsers] = useState([]);
   const [isUsersListVisible, setIsUsersListVisible] = useState(true);
   const [selectedUser, setSelectedUser] = useState(null);
@@ -24,16 +33,19 @@ export function Users(
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const response = await fetch(`https://dummyjson.com/users`);
+        const querySnapshot = await getDocs(collection(fireStore, "users"));
+        const fetchedUsers = [];
 
-        if (!response.ok) {
-          throw new Error("Ошибка при получении данных о пользователях");
-        }
+        querySnapshot.forEach((doc) => {
+          fetchedUsers.push({
+            id: doc.id,
+            ...doc.data(),
+          });
+        });
 
-        const result = await response.json();
-        setUsers(result.users);
+        setUsers(fetchedUsers);
       } catch (error) {
-        console.error(error);
+        console.error("Error fetching users:", error.message);
       }
     };
 
@@ -43,52 +55,64 @@ export function Users(
   const openModal = (user) => {
     setSelectedUser(user);
     setIsModalOpen(true);
-    console.log("Открыто", user);
+    console.log("Open", user);
   };
 
   const closeModal = () => {
     setSelectedUser(null);
     setIsModalOpen(false);
     setIsNewUserModalOpen(false);
-    console.log("Закрыто");
+    console.log("Closed");
   };
 
   const openNewUserModal = () => {
     setIsNewUserModalOpen(true);
   };
 
+  const deleteUser = async (userId) => {
+    try {
+      const userRef = doc(fireStore, "users", userId);
+      await deleteDoc(userRef);
+
+      const updatedUsers = users.filter((user) => user.id !== userId);
+      setUsers(updatedUsers);
+
+      closeModal();
+    } catch (error) {
+      console.error("Error deleting user:", error.message);
+    }
+  };
+
   const handleSave = async () => {
     try {
-      const response = await fetch("https://dummyjson.com/users/add", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(formData),
+      const docRef = await addDoc(collection(fireStore, "users"), {
+        ...formData,
       });
 
-      if (!response.ok) {
-        throw new Error("Ошибка при создании пользователя");
-      }
+      const userId = docRef.id;
 
-      const newUser = await response.json();
+      setUsers((prevUsers) => [
+        ...prevUsers,
+        {
+          id: userId,
+          ...formData,
+        },
+      ]);
 
-      setUsers((prevUsers) => [...prevUsers, newUser]);
-
-    
       setFormData({
         firstName: "",
         lastName: "",
         email: "",
       });
 
-     
       closeModal();
     } catch (error) {
-      console.error(error);
+      console.error(
+        "Ошибка при добавлении нового пользователя:",
+        error.message
+      );
     }
   };
-
   const handleChange = (e) => {
     const { name, value } = e.target;
     setFormData((prevData) => ({
@@ -101,26 +125,26 @@ export function Users(
     <div className="container1">
       <nav>
         <div className="search-block">
-          <img src="/img/search.png" alt="search" />
+          <input type="text" placeholder="Search" />
         </div>
         <div className="notification-block">
-          <img src="/img/notification.png" alt="notification" />
+          <img src="./img/notification" alt="notification" />
         </div>
       </nav>
       <div className="block">
         <h3>Users</h3>
         <div className="mini-search-block">
-          <img className="mini-search" src="/img/mini-search.png" alt="" />
+          <input type="text" placeholder="Search" />
           <div className="mini-btns">
             <img
               className="box-img"
-              src="/img/box.png"
+              src="./img/box.png"
               alt="box"
               onClick={ToBox}
             />
             <img
               className="line-img"
-              src="/img/line.png"
+              src="./img/line.png"
               alt="line"
               onClick={Toline}
             />
@@ -136,12 +160,8 @@ export function Users(
         style={{ display: isUsersListVisible ? "block" : "none" }}
       >
         {users.map((user) => (
-          <div
-            className="user-block"
-            key={user.id}
-            onClick={() => openModal(user)}
-          >
-            <div className="user-mini-block">
+          <div className="user-block" key={user.id}>
+            <div className="user-mini-block" onClick={() => openModal(user)}>
               <div className="user-img">
                 <img src={user.image} alt="" />
               </div>
@@ -154,8 +174,9 @@ export function Users(
               </div>
             </div>
             <button>Messages</button>
+            <button onClick={() => deleteUser(user.id)}>Delete</button>
           </div>
-        ))}
+        ))}{" "}
       </div>
 
       <div
@@ -163,12 +184,8 @@ export function Users(
         style={{ display: isUsersListVisible ? "none" : "grid" }}
       >
         {users.map((user) => (
-          <div
-            className="user-block1"
-            key={user.id}
-            onClick={() => openModal(user)}
-          >
-            <div className="user-mini-block1">
+          <div className="user-block1" key={user.id}>
+            <div className="user-mini-block1" onClick={() => openModal(user)}>
               <div className="user-img1">
                 <img src={user.image} alt="" />
               </div>
@@ -180,100 +197,22 @@ export function Users(
               </div>
             </div>
             <button>Messages</button>
+            <button onClick={() => deleteUser(user.id)}>Delete</button>
           </div>
         ))}
       </div>
-
-      {isModalOpen && (
-        <div className="modal">
-          <div className="modal-content">
-            <span className="close" onClick={closeModal}>
-              &times;
-            </span>
-            <div className="modal-user-info">
-              <div className="img-block">
-                <img src={selectedUser.image} alt="user" />
-              </div>
-
-              <div className="text-block">
-                {" "}
-                <h2>
-                  {selectedUser.firstName} {selectedUser.lastName}
-                </h2>
-                <p>Email: {selectedUser.email}</p>
-              </div>
-            </div>
-            <div className="modal-settings">
-              <h2>Notifications</h2>
-              <h3>General</h3>
-              <div className="switch-block">
-                <p>Messages</p> <img src="/img/on.png" alt="switch" />{" "}
-              </div>
-              <div className="switch-block">
-                <p>Calls</p> <img src="/img/on.png" alt="switch" />{" "}
-              </div>
-              <div className="switch-block">
-                <p>Activity update</p> <img src="/img/off.png" alt="switch" />{" "}
-              </div>
-              <div className="switch-block">
-                <p>Reviews</p> <img src="/img/off.png" alt="switch" />{" "}
-              </div>
-              <div className="switch-block">
-                <p>Posts</p> <img src="/img/on.png" alt="switch" />{" "}
-              </div>
-              <div className="switch-block">
-                <p>Sees my profile photo</p>{" "}
-                <img src="/img/on.png" alt="switch" />{" "}
-              </div>
-            </div>
-          </div>
-        </div>
-      )}
-      {isNewUserModalOpen && (
-        <div className="custom-modal">
-          <div className="custom-modal-content">
-            <span className=" custom-close" onClick={closeModal}>
-              &times;
-            </span>
-            <div className="custom-modal-user-info">
-              <h2>Add new user</h2>
-              <div className="form-group">
-                <label htmlFor="firstName">Name:</label>
-                <input
-                  type="text"
-                  id="firstName"
-                  name="firstName"
-                  value={formData.firstName}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="lastName"> name</label>
-                <input
-                  type="text"
-                  id="lastName"
-                  name="lastName"
-                  value={formData.lastName}
-                  onChange={handleChange}
-                />
-              </div>
-              <div className="form-group">
-                <label htmlFor="email">Email:</label>
-                <input
-                  type="text"
-                  id="email"
-                  name="email"
-                  value={formData.email}
-                  onChange={handleChange}
-                />
-              </div>
-              <button className="save-user" onClick={handleSave}>
-                Save and invite
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <Modal
+        isOpen={isModalOpen}
+        closeModal={closeModal}
+        selectedUser={selectedUser}
+      />
+      <NewUserModal
+        isNewUserModalOpen={isNewUserModalOpen}
+        closeModal={closeModal}
+        handleChange={handleChange}
+        handleSave={handleSave}
+        formData={formData}
+      />
     </div>
   );
 }

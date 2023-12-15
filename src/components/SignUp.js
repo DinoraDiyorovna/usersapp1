@@ -1,59 +1,55 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { NavLink } from "react-router-dom";
-
+import { addDoc, collection } from "firebase/firestore";
+import { fireStore } from "../lib/firebase";
+import { toast } from "react-toastify";
 export function SignUp() {
-  const [id, idChange] = useState("");
+  const [firstName, firstNameChange] = useState("");
   const [email, emailChange] = useState("");
   const [password, passwordChange] = useState("");
   const [confirmPassword, confirmPasswordChange] = useState("");
- 
+
   const usenavigate = useNavigate();
 
   const handleSubmit = async (e) => {
     e.preventDefault();
 
     if (validate()) {
-      let regObj = { id, email, password, confirmPassword };
-    
       try {
-        const response = await fetch("http://localhost:8000/user", {
-          method: "POST",
-          headers: { "content-type": "application/json" },
-          body: JSON.stringify(regObj),
+        const docRef = await addDoc(collection(fireStore, "users"), {
+          firstName: firstName,
+          password: password,
+          email: email,
+          confirmPassword: confirmPassword,
         });
 
-        if (response.ok) {
-          alert("Registered successfully");
-          usenavigate("/sign-in");
-        } else {
-          const errorMessage = await response.text();
-          alert("Failed: " + errorMessage);
-        }
-      } catch (err) {
-        console.error("Error during registration:", err.message);
-        alert("Failed: " + err.message);
+        console.log("Document written with ID: ", docRef.id);
+        toast("Registered successfully");
+        usenavigate("/sign-in");
+      } catch (e) {
+        console.error("Error adding document: ", e.message);
+        toast("Failed to register");
       }
     }
   };
-
   const validate = () => {
     let result = true;
-    if (id === "" || id === null) {
+    if (firstName === "" || firstName === null) {
       result = false;
-      alert("Please enter your name");
+      toast("Please enter your name");
     }
     if (email === "" || email === null) {
       result = false;
-      alert("Please enter your email");
+      toast("Please enter your email");
     }
     if (password === "" || password === null) {
       result = false;
-      alert("Please enter your password");
+      toast("Please enter your password");
     }
     if (confirmPassword === "" || confirmPassword === null) {
       result = false;
-      alert("Please confirm your passsword");
+      toast("Please confirm your passsword");
     }
     return result;
   };
@@ -67,7 +63,6 @@ export function SignUp() {
             <h3>TurboSale.</h3>
           </div>
           <h2>Create Account</h2>
-
           <div className="form">
             <form onSubmit={handleSubmit}>
               <div className="name">
@@ -75,8 +70,8 @@ export function SignUp() {
                 <input
                   type="text"
                   name="name"
-                  value={id}
-                  onChange={(e) => idChange(e.target.value)}
+                  value={firstName}
+                  onChange={(e) => firstNameChange(e.target.value)}
                 />
               </div>
               <div className="email">
@@ -127,7 +122,7 @@ export function SignUp() {
         </div>
       </div>
       <div className="blue-block">
-        <img src="/img/statistic.png" alt="Statistic" />
+        <img src="./img/statistic.png" alt="Statistic" />
         <div className="blue-block-text">
           <h3>Connect and manage with your team!</h3>
           <p>

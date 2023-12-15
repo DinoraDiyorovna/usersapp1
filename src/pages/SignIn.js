@@ -1,5 +1,8 @@
 import { NavLink, useNavigate } from "react-router-dom";
 import { useState } from "react";
+import { collection, getDocs } from "firebase/firestore";
+import { fireStore } from "../lib/firebase";
+import { toast } from "react-toastify";
 
 export function SignIn() {
   const [username, setUsername] = useState("");
@@ -11,29 +14,35 @@ export function SignIn() {
 
     if (validate()) {
       try {
-        const response = await fetch(`http://localhost:8000/user/${username}`);
+        const querySnapshot = await getDocs(collection(fireStore, "users"));
+        let userFound = false;
 
-        if (!response.ok) {
-          throw new Error(`Login failed due to: ${response.statusText}`);
-        }
+        querySnapshot.forEach((doc) => {
+          const userData = doc.data();
+          if (
+            username === userData.firstName &&
+            password === userData.password
+          ) {
+            userFound = true;
+          }
+        });
 
-        const user = await response.json();
-
-        if (!user || user.password !== password) {
-          console.log("Invalid credentials");
-        } else {
+        if (userFound) {
+          toast(`Welcome ${username}`);
           navigate("/users");
+        } else {
+          alert("Failed to login. Please check your username and password.");
         }
       } catch (err) {
         console.error("Error during login:", err.message);
-        alert(err.message); 
+        toast(err.message);
       }
     }
   };
 
   const validate = () => {
     if (!username.trim() || !password.trim()) {
-      alert("Please enter both username and password");
+      toast("Please enter both username and password");
       return false;
     }
     return true;

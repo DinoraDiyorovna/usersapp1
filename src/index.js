@@ -1,11 +1,11 @@
-import React from 'react';
-import App from './App';
+import React from "react";
+import App from "./App";
 import "./index.css";
-import { SignIn } from './pages/SignIn';
-import { Users } from './pages/Users';
+import { SignIn } from "./pages/SignIn";
+import { Users } from "./pages/Users";
 import ReactDOM from "react-dom/client";
 //  import "./fonts/index.css";
- 
+
 import {
   RouterProvider,
   createBrowserRouter,

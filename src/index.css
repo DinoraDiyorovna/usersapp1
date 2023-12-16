@@ -327,6 +327,7 @@ form {
   width: 180px;
   height: 35px;
   background-color: white;
+  margin-bottom: 10px;
 }
 
 .user-block1 button:hover {
@@ -378,56 +379,54 @@ form {
   align-items: center;
   gap: 20px;
 }
-.text-block h2{
-    color: #242f57;
+.text-block h2 {
+  color: #242f57;
 }
 .text-block p {
-    color: #636e95;
+  color: #636e95;
 }
 .modal-user-info .img-block {
-    border: 1px solid #97a0c3;
-    border-radius: 50px;
-      transition: transform 0.3s ease-in-out;
+  border: 1px solid #97a0c3;
+  border-radius: 50px;
+  transition: transform 0.3s ease-in-out;
 }
 .modal-user-info .img-block:hover {
-  transform: scale(1.1);  
+  transform: scale(1.1);
 }
 
 .modal-user-info .img-block img {
   width: 65px;
   height: 60px;
-
 }
 .modal-settings {
   display: flex;
   flex-direction: column;
   margin-top: 10px;
-
 }
-.modal-settings h2{
-     color: #242f57;
+.modal-settings h2 {
+  color: #242f57;
 }
-.modal-settings h3{
-    margin-top: 10px;
-    color: #636e95;
-    font-size: 25px;
+.modal-settings h3 {
+  margin-top: 10px;
+  color: #636e95;
+  font-size: 25px;
 }
-.switch-block{
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-top: 10px;
+.switch-block {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-top: 10px;
 }
-.switch-block p{
-    color: #636e95;
-    font-size: 20px;
+.switch-block p {
+  color: #636e95;
+  font-size: 20px;
 }
-.switch-block img{
-    margin-top: 13px;
+.switch-block img {
+  margin-top: 13px;
 }
 
 .custom-modal {
- display: flex;
+  display: flex;
   position: fixed;
   top: 0;
   left: 0;
@@ -437,7 +436,7 @@ form {
   justify-content: center;
   align-items: center;
   z-index: 1;
-  opacity: '${isAddUserModalOpen ? 1 : 0}';
+  opacity: "${isAddUserModalOpen ? 1 : 0}";
   visibility: "${isAddUserModalOpen ? " visible " : " hidden "}";
   transition: opacity 0.5s, visibility 0.5s;
 }
@@ -477,8 +476,8 @@ form {
 }
 
 .custom-modal-user-info button {
-  background-color:white;
-  color:#369afe;
+  background-color: white;
+  color: #369afe;
   padding: 10px 15px;
   border: none;
   border-radius: 5px;
@@ -488,6 +487,6 @@ form {
 }
 
 .custom-modal-user-info button:hover {
-  background-color:#369afe;
+  background-color: #369afe;
   color: white;
 }
